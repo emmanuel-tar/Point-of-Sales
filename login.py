@@ -3,13 +3,16 @@ from tkinter import ttk, messagebox
 import mysql.connector
 from admin_panel import open_admin_panel
 
+
 # Function to handle login
 def login():
     selected_user = combobox.get()  # Get selected username from combobox
     password = entry_password.get()  # Get entered password
 
     if selected_user and password:
-        conn = mysql.connector.connect(user='root', password='root', host='localhost', database='pos',port='1207')
+        conn = mysql.connector.connect(
+            user="root", password="root", host="localhost", database="pos", port="1207"
+        )
         cursor = conn.cursor()
 
         # Check if the username and password match in the database
@@ -22,21 +25,26 @@ def login():
             # Proceed to admin page or main screen
             root.destroy()  # Close the login window
             open_admin_panel()  # Open the admin panel from the other file
-
         else:
             messagebox.showerror("Error", "Invalid username or password")
         conn.close()
     else:
         messagebox.showwarning("Input Error", "Please fill in all fields")
 
+
 # Function to fetch usernames from the database for the combobox
 def fetch_usernames():
-    conn = mysql.connector.connect(user='root', password='root', host='localhost', database='pos',port='1207')
+    conn = mysql.connector.connect(
+        user="root", password="root", host="localhost", database="pos", port="1207"
+    )
     cursor = conn.cursor()
     cursor.execute("SELECT username FROM users")
-    usernames = [row[0] for row in cursor.fetchall()]  # Fetch all usernames from the database
+    usernames = [
+        row[0] for row in cursor.fetchall()
+    ]  # Fetch all usernames from the database
     conn.close()
     return usernames
+
 
 # Tkinter GUI for Login
 root = tk.Tk()
