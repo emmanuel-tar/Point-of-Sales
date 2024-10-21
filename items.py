@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import ttk, messagebox
 import mysql.connector
 
 
@@ -12,32 +12,68 @@ def open_item_form():
     label_title = tk.Label(item_window, text="Add New Item", font=("Arial", 16))
     label_title.pack(pady=10)
 
+    # Function to fetch groups from the database
+    def fetch_groups():
+        conn = mysql.connector.connect(
+            user="root", password="root", host="localhost", database="pos", port="1207"
+        )
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT group_name FROM item_groups"
+        )  # Assuming you have an item_groups table
+        groups = [row[0] for row in cursor.fetchall()]
+        conn.close()
+        return groups
+
+    # Function to fetch printout locations from the database
+    def fetch_printout_locations():
+        conn = mysql.connector.connect(
+            user="root", password="root", host="localhost", database="pos", port="1207"
+        )
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT location_name FROM printout_locations"
+        )  # Assuming you have a printout_locations table
+        locations = [row[0] for row in cursor.fetchall()]
+        conn.close()
+        return locations
+
     # Form fields
-    labels_and_entries = [
-        ("Item Description", None),
-        ("Kitchen Description", None),
-        ("Price", None),
-        ("Group", None),
-        ("Printout Location", None),
-    ]
+    label_item_desc = tk.Label(item_window, text="Item Description")
+    label_item_desc.pack(pady=5)
+    entry_item_desc = tk.Entry(item_window)
+    entry_item_desc.pack(pady=5)
 
-    entries = {}
+    label_kitchen_desc = tk.Label(item_window, text="Kitchen Description")
+    label_kitchen_desc.pack(pady=5)
+    entry_kitchen_desc = tk.Entry(item_window)
+    entry_kitchen_desc.pack(pady=5)
 
-    for label_text, var in labels_and_entries:
-        label = tk.Label(item_window, text=label_text)
-        label.pack(pady=5)
+    label_price = tk.Label(item_window, text="Price")
+    label_price.pack(pady=5)
+    entry_price = tk.Entry(item_window)
+    entry_price.pack(pady=5)
 
-        entry = tk.Entry(item_window)
-        entry.pack(pady=5)
-        entries[label_text] = entry
+    label_group = tk.Label(item_window, text="Group")
+    label_group.pack(pady=5)
+    group_combobox = ttk.Combobox(item_window, values=fetch_groups())
+    group_combobox.pack(pady=5)
+
+    label_printout = tk.Label(item_window, text="Printout Location")
+    label_printout.pack(pady=5)
+    printout_combobox = ttk.Combobox(item_window, values=fetch_printout_locations())
+    printout_combobox.pack(pady=5)
 
     # Submit Button
     def submit_item():
-        # Collect the data from all entries
-        item_data = {key: entry.get() for key, entry in entries.items()}
+        item_desc = entry_item_desc.get()
+        kitchen_desc = entry_kitchen_desc.get()
+        price = entry_price.get()
+        group = group_combobox.get()
+        printout_location = printout_combobox.get()
 
         # Basic validation: ensure all fields are filled
-        if all(item_data.values()):
+        if item_desc and kitchen_desc and price and group and printout_location:
             try:
                 # Connect to the database and insert the item
                 conn = mysql.connector.connect(
@@ -57,19 +93,22 @@ def open_item_form():
                 cursor.execute(
                     insert_query,
                     (
-                        item_data["Item Description"],
-                        item_data["Kitchen Description"],
-                        float(item_data["Price"]),
-                        item_data["Group"],
-                        item_data["Printout Location"],
+                        item_desc,
+                        kitchen_desc,
+                        float(price),
+                        group,
+                        printout_location,
                     ),
                 )
                 conn.commit()  # Commit the transaction
                 messagebox.showinfo("Success", "Item added successfully!")
 
                 # Clear the fields after successful submission
-                for entry in entries.values():
-                    entry.delete(0, tk.END)
+                entry_item_desc.delete(0, tk.END)
+                entry_kitchen_desc.delete(0, tk.END)
+                entry_price.delete(0, tk.END)
+                group_combobox.set("")
+                printout_combobox.set("")
 
             except mysql.connector.Error as err:
                 messagebox.showerror("Database Error", f"Error: {err}")

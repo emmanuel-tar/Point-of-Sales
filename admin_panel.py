@@ -40,6 +40,10 @@ def open_admin_panel():
         label="View Payment History",
         command=lambda: messagebox.showinfo("Payment", "Payment History Clicked"),
     )
+    payment_menu.add_command(
+        label="Currency",
+        command=lambda:messagebox.showinfo("Currency", "Currency Clicked")
+    )
     menubar.add_cascade(label="Payment", menu=payment_menu)
 
     # Create a Setups menu with sub-options
