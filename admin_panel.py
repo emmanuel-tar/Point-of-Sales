@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
 from items import open_item_form  # Import the open_item_form function
+from employee_form import open_employee_form
 
 
 # Function to open admin panel after successful login
@@ -29,6 +30,24 @@ def open_admin_panel():
     file_menu.add_separator()
     file_menu.add_command(label="Exit", command=admin_window.quit)
     menubar.add_cascade(label="File", menu=file_menu)
+
+    # Create an Employee  menu with Sub-menu
+    employee_menu = tk.Menu(menubar, tearoff=0)
+    employee_menu.add_command(
+        label="Employee Setup",
+        command=lambda: messagebox.showinfo("Employee Setup", "New File Clicked"),
+    )
+    employee_menu.add_command(
+        label="Employee Roles", command=lambda: messagebox.showinfo("Employee Roles", "Open File Clicked")
+    )
+
+    employee_menu.add_command(
+        label="Employee Configuration", command=lambda: messagebox.showinfo("Employee Configuration", "Save File Clicked")
+    )
+   
+    employee_menu.add_separator()
+    employee_menu.add_command(label="Exit", command=admin_window.quit)
+    menubar.add_cascade(label="Employee", menu=employee_menu)
 
     # Create a Payment menu with sub-options
     payment_menu = tk.Menu(menubar, tearoff=0)
@@ -75,7 +94,7 @@ def open_admin_panel():
         ("Customers", lambda: print("Customers page")),
         ("Report", lambda: print("Report page")),
         ("Sales", lambda: print("Sales page")),
-        ("Employees", lambda: print("Employees page")),
+        ("Employees", open_employee_form),
         ("Dashboard", lambda: print("Dashboard page")),
     ]
 
