@@ -2,6 +2,8 @@ import tkinter as tk
 from tkinter import messagebox
 from items import open_item_form  # Import the open_item_form function
 from employee_form import open_employee_form
+from customers import open_customer_form
+from currencies import open_currency_form
 
 
 # Function to open admin panel after successful login
@@ -44,7 +46,7 @@ def open_admin_panel():
     employee_menu.add_command(
         label="Employee Configuration", command=lambda: messagebox.showinfo("Employee Configuration", "Save File Clicked")
     )
-   
+
     employee_menu.add_separator()
     employee_menu.add_command(label="Exit", command=admin_window.quit)
     menubar.add_cascade(label="Employee", menu=employee_menu)
@@ -61,8 +63,11 @@ def open_admin_panel():
     )
     payment_menu.add_command(
         label="Currency",
-        command=lambda:messagebox.showinfo("Currency", "Currency Clicked")
-    )
+        command=open_currency_form)
+    
+    
+    
+    
     menubar.add_cascade(label="Payment", menu=payment_menu)
 
     # Create a Setups menu with sub-options
@@ -91,7 +96,7 @@ def open_admin_panel():
     # Create the buttons (boxes) and place them in a grid
     buttons = [
         ("Items", open_item_form),  # Link the Items button to open_item_form
-        ("Customers", lambda: print("Customers page")),
+        ("Customers", open_customer_form),
         ("Report", lambda: print("Report page")),
         ("Sales", lambda: print("Sales page")),
         ("Employees", open_employee_form),
