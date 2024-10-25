@@ -29,9 +29,7 @@ def fetch_customers_from_db():
         port="1207",  # Update port if needed
     )
     cursor = conn.cursor()
-    cursor.execute(
-        "SELECT name, email, contact_number FROM customers"
-    )  # Removed the extra comma
+    cursor.execute("SELECT name, email, contact_number FROM customers")
     customers = cursor.fetchall()
     conn.close()
     return customers
@@ -45,12 +43,11 @@ def open_customer_selection(customer_label):
 
     # TreeView for displaying customers
     customer_tree = ttk.Treeview(
-        customer_window, columns=("Name","email","Phone"), show="headings", height=15
+        customer_window, columns=("Name", "Email", "Phone"), show="headings", height=15
     )
-    #customer_tree.heading("ID", text="ID")
     customer_tree.heading("Name", text="Name")
     customer_tree.heading("Email", text="Email")
-    customer_tree.heading("Phone", text="Phone Number" )
+    customer_tree.heading("Phone", text="Phone Number")
     customer_tree.pack(fill=tk.BOTH, expand=True)
 
     # Fetch customers and display in the TreeView
@@ -62,7 +59,7 @@ def open_customer_selection(customer_label):
     def select_customer():
         selected = customer_tree.selection()
         if selected:
-            customer_name = customer_tree.item(selected, "values")[1]
+            customer_name = customer_tree.item(selected, "values")[0]
             customer_label.config(text=f"Customer: {customer_name}")
             customer_window.destroy()
 
