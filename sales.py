@@ -1,6 +1,7 @@
 import tkinter as tk
-from tkinter import ttk, simpledialog
+from tkinter import ttk, simpledialog, messagebox
 import mysql.connector
+from payment import open_payment_screen
 
 
 # Function to fetch items from the database
@@ -35,6 +36,24 @@ def fetch_customers_from_db():
     return customers
 
 
+# Function to fetch payment types from the database
+def fetch_payment_types_from_db():
+    conn = mysql.connector.connect(
+        user="root",
+        password="root",
+        host="localhost",
+        database="pos",
+        port="1207",  # Update port if needed
+    )
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT type FROM payment_type"
+    )  # Adjust this query to match your database structure
+    payment_types = cursor.fetchall()
+    conn.close()
+    return [pt[0] for pt in payment_types]
+
+
 # Function to open the Customer Selection Screen
 def open_customer_selection(customer_label):
     customer_window = tk.Toplevel()
@@ -66,6 +85,66 @@ def open_customer_selection(customer_label):
     # Button to select customer
     select_button = tk.Button(customer_window, text="Select", command=select_customer)
     select_button.pack(pady=10)
+
+
+# Function to open the Payment Screen
+def open_payment_selection(total_amount):
+    # Fetch payment types from the database
+    payment_types = fetch_payment_types_from_db()
+
+    payment_window = tk.Toplevel()
+    payment_window.title("Payment Selection")
+    payment_window.geometry("400x300")
+
+    tk.Label(
+        payment_window, text=f"Total Amount: =N={total_amount:.2f}", font=("Arial", 14)
+    ).pack(pady=10)
+
+    # Create a ComboBox for payment types
+    payment_type_label = tk.Label(payment_window, text="Select Payment Type:")
+    payment_type_label.pack(pady=5)
+
+    payment_type_combobox = ttk.Combobox(payment_window, values=payment_types)
+    payment_type_combobox.pack(pady=10)
+
+    # Discount Entry
+    discount_label = tk.Label(payment_window, text="Enter Discount (Amount or %):")
+    discount_label.pack(pady=5)
+
+    discount_entry = tk.Entry(payment_window)
+    discount_entry.pack(pady=10)
+
+    def confirm_payment():
+        selected_payment_type = payment_type_combobox.get()
+        discount_value = discount_entry.get()
+        if selected_payment_type:
+            try:
+                if discount_value:
+                    if discount_value.endswith("%"):
+                        discount_percentage = float(discount_value[:-1])
+                        discount_amount = total_amount * (discount_percentage / 100)
+                    else:
+                        discount_amount = float(discount_value)
+                else:
+                    discount_amount = 0
+
+                final_amount = total_amount - discount_amount
+                messagebox.showinfo(
+                    "Payment Confirmed",
+                    f"Payment of =N={final_amount:.2f} received using {selected_payment_type}.",
+                )
+                payment_window.destroy()
+            except ValueError:
+                messagebox.showwarning(
+                    "Input Error", "Please enter a valid discount amount or percentage."
+                )
+        else:
+            messagebox.showwarning("Selection Error", "Please select a payment type.")
+
+    confirm_button = tk.Button(
+        payment_window, text="Confirm Payment", command=confirm_payment
+    )
+    confirm_button.pack(pady=20)
 
 
 # Function to open the Sales Screen
@@ -149,6 +228,18 @@ def open_sales_screen():
                 width=10,
                 height=2,
                 command=lambda: open_customer_selection(customer_label),
+            )
+        elif operation == "Close":
+            op_button = tk.Button(
+                bottom_frame,
+                text=operation,
+                bg=color,
+                font=("Arial", 12),
+                width=10,
+                height=2,
+                command=lambda: open_payment_selection(
+                    total_price
+                ),  # Open payment screen
             )
         else:
             op_button = tk.Button(
