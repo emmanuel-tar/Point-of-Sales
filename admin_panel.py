@@ -4,6 +4,7 @@ from items import open_item_form  # Import the open_item_form function
 from employee_form import open_employee_form
 from customers import open_customer_form
 from currencies import open_currency_form
+from sales import open_sales_screen
 
 
 # Function to open admin panel after successful login
@@ -64,10 +65,7 @@ def open_admin_panel():
     payment_menu.add_command(
         label="Currency",
         command=open_currency_form)
-    
-    
-    
-    
+
     menubar.add_cascade(label="Payment", menu=payment_menu)
 
     # Create a Setups menu with sub-options
@@ -98,7 +96,7 @@ def open_admin_panel():
         ("Items", open_item_form),  # Link the Items button to open_item_form
         ("Customers", open_customer_form),
         ("Report", lambda: print("Report page")),
-        ("Sales", lambda: print("Sales page")),
+        ("Sales", open_sales_screen),
         ("Employees", open_employee_form),
         ("Dashboard", lambda: print("Dashboard page")),
     ]
