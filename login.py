@@ -1,39 +1,52 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import messagebox
 import mysql.connector
 from admin_panel import open_admin_panel
 
+
 # Function to handle login
-def login():
-    selected_user = combobox.get()  # Get selected username from combobox
-    password = entry_password.get()  # Get entered password
+def login(username):
+    def check_password():
+        password = entry_password.get()  # Get entered password
 
-    if selected_user and password:
-        try:
-            conn = mysql.connector.connect(
-                user="root", password="root", host="localhost", database="pos", port="1207"
-            )
-            cursor = conn.cursor()
+        if password:
+            try:
+                conn = mysql.connector.connect(
+                    user="root",
+                    password="root",
+                    host="localhost",
+                    database="pos",
+                    port="1207",
+                )
+                cursor = conn.cursor()
 
-            # Check if the username and password match in the database
-            query = "SELECT * FROM users WHERE username=%s AND password=%s"
-            cursor.execute(query, (selected_user, password))
-            result = cursor.fetchone()
+                # Check if the username and password match in the database
+                query = "SELECT * FROM users WHERE username=%s AND password=%s"
+                cursor.execute(query, (username, password))
+                result = cursor.fetchone()
 
-            if result:
-                messagebox.showinfo("Login", "Login Successful")
-                # Proceed to admin page or main screen
-                root.destroy()  # Close the login window
-                open_admin_panel()  # Open the admin panel from the other file
-            else:
-                messagebox.showerror("Error", "Invalid username or password")
-            conn.close()
-        except mysql.connector.Error as err:
-            messagebox.showerror("Database Error", f"Error connecting to database: {err}")
-    else:
-        messagebox.showwarning("Input Error", "Please fill in all fields")
+                if result:
+                    messagebox.showinfo("Login", "Login Successful")
+                    root.destroy()  # Close the login window
+                    open_admin_panel()  # Open the admin panel
+                else:
+                    messagebox.showerror("Error", "Invalid username or password")
 
-# Function to fetch usernames from the database for the combobox
+                conn.close()
+            except mysql.connector.Error as err:
+                messagebox.showerror(
+                    "Database Error", f"Error connecting to database: {err}"
+                )
+        else:
+            messagebox.showwarning("Input Error", "Please enter the password.")
+
+    # Set the selected username label and link the button to check the password
+    label_selected_user.config(text=f"Selected User: {username}")
+    button_login.config(command=check_password)
+    entry_password.delete(0, tk.END)  # Clear password entry field
+
+
+# Function to fetch usernames from the database
 def fetch_usernames():
     try:
         conn = mysql.connector.connect(
@@ -41,35 +54,58 @@ def fetch_usernames():
         )
         cursor = conn.cursor()
         cursor.execute("SELECT username FROM users")
-        usernames = [row[0] for row in cursor.fetchall()]  # Fetch all usernames from the database
+        usernames = [row[0] for row in cursor.fetchall()]  # Fetch usernames
         conn.close()
         return usernames
     except mysql.connector.Error as err:
         messagebox.showerror("Database Error", f"Could not fetch usernames: {err}")
         return []
 
+
 # Tkinter GUI for Login
 root = tk.Tk()
 root.title("Admin Login")
-root.geometry("300x200")
+root.geometry("500x400")  # Increased the window size
 
-# Username Label and Combobox
-label_username = tk.Label(root, text="Select Username:")
-label_username.pack(pady=5)
+# Frame for user buttons
+frame_users = tk.Frame(root)
+frame_users.pack(pady=20)
 
-usernames = fetch_usernames()  # Fetch usernames from the database
-combobox = ttk.Combobox(root, values=usernames)
-combobox.pack(pady=5)
+# Fetch usernames from the database and create a button for each
+usernames = fetch_usernames()
+for user in usernames:
+    user_button = tk.Button(
+        frame_users,
+        text=user,
+        bg="blue",
+        fg="white",
+        font=("Arial", 12, "bold"),
+        width=5,  # Increased width
+        height=2,  # Set height to create a square
+        command=lambda u=user: login(u),  # Pass the username to login function
+    )
+    user_button.pack(side="left", padx=10)
 
-# Password Label and Entry
-label_password = tk.Label(root, text="Password:")
-label_password.pack(pady=5)
+# Frame for password prompt at the bottom left
+frame_login = tk.Frame(root)
+frame_login.pack(side="bottom", pady=20, anchor="w")
 
-entry_password = tk.Entry(root, show="*")  # Password field (hidden characters)
-entry_password.pack(pady=5)
+# Selected user label for feedback
+label_selected_user = tk.Label(
+    frame_login, text="Select a user to log in", font=("Arial", 10)
+)
+label_selected_user.grid(
+    row=0, column=0, columnspan=2, padx=10, pady=(0, 5), sticky="w"
+)
 
-# Login Button
-btn_login = tk.Button(root, text="Login", command=login)
-btn_login.pack(pady=20)
+# Password entry field
+label_password = tk.Label(frame_login, text="Password:")
+label_password.grid(row=1, column=0, padx=10, sticky="w")
+entry_password = tk.Entry(frame_login, show="*", width=20)
+entry_password.grid(row=1, column=1, padx=10, pady=5, sticky="w")
+
+# Login button
+button_login = tk.Button(frame_login, text="Enter Password", command=None)
+button_login.grid(row=2, column=1, padx=10, pady=10, sticky="w")
 
 root.mainloop()

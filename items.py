@@ -4,78 +4,143 @@ import mysql.connector
 
 
 def open_item_form():
-    item_window = tk.Toplevel()  # Create a new window (popup)
-    item_window.title("Add New Item")
-    item_window.geometry("400x400")
+    item_window = tk.Toplevel()
+    item_window.title("Items Management")
+    item_window.geometry("800x400")
 
-    # Title
-    label_title = tk.Label(item_window, text="Add New Item", font=("Arial", 16))
-    label_title.pack(pady=10)
+    left_frame = tk.Frame(item_window, width=300, bg="lightgray")
+    left_frame.pack(side="left", fill="y")
 
-    # Function to fetch groups from the database
+    right_frame = tk.Frame(item_window, width=500)
+    right_frame.pack(side="right", fill="both", expand=True)
+
+    # Function to display items alphabetically
+    def display_items():
+        conn = mysql.connector.connect(
+            user="root", password="root", host="localhost", database="pos", port="1207"
+        )
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT id, item_description FROM items ORDER BY item_description ASC"
+        )
+        items = cursor.fetchall()
+        conn.close()
+
+        item_listbox.delete(0, tk.END)
+        for item in items:
+            item_listbox.insert(tk.END, item[1])  # Insert item description only
+
+    # Fetch the groups and printout locations
     def fetch_groups():
         conn = mysql.connector.connect(
             user="root", password="root", host="localhost", database="pos", port="1207"
         )
         cursor = conn.cursor()
-        cursor.execute(
-            "SELECT group_name FROM item_groups"
-        )  # Assuming you have an item_groups table
+        cursor.execute("SELECT group_name FROM item_groups")
         groups = [row[0] for row in cursor.fetchall()]
         conn.close()
         return groups
 
-    # Function to fetch printout locations from the database
     def fetch_printout_locations():
         conn = mysql.connector.connect(
             user="root", password="root", host="localhost", database="pos", port="1207"
         )
         cursor = conn.cursor()
-        cursor.execute(
-            "SELECT location_name FROM printout_locations"
-        )  # Assuming you have a printout_locations table
+        cursor.execute("SELECT location_name FROM printout_locations")
         locations = [row[0] for row in cursor.fetchall()]
         conn.close()
         return locations
 
-    # Form fields
-    label_item_desc = tk.Label(item_window, text="Item Description")
+    label_item_list = tk.Label(
+        left_frame, text="Items", font=("Arial", 14), bg="lightgray"
+    )
+    label_item_list.pack(pady=10)
+
+    item_listbox = tk.Listbox(left_frame)
+    item_listbox.pack(fill="both", expand=True, padx=10, pady=10)
+    display_items()
+
+    label_title = tk.Label(right_frame, text="Edit Item", font=("Arial", 16))
+    label_title.pack(pady=10)
+
+    # Item Form Fields
+    label_item_desc = tk.Label(right_frame, text="Item Description")
     label_item_desc.pack(pady=5)
-    entry_item_desc = tk.Entry(item_window)
+    entry_item_desc = tk.Entry(right_frame)
     entry_item_desc.pack(pady=5)
 
-    label_kitchen_desc = tk.Label(item_window, text="Kitchen Description")
+    label_kitchen_desc = tk.Label(right_frame, text="Kitchen Description")
     label_kitchen_desc.pack(pady=5)
-    entry_kitchen_desc = tk.Entry(item_window)
+    entry_kitchen_desc = tk.Entry(right_frame)
     entry_kitchen_desc.pack(pady=5)
 
-    label_price = tk.Label(item_window, text="Price")
+    label_price = tk.Label(right_frame, text="Price")
     label_price.pack(pady=5)
-    entry_price = tk.Entry(item_window)
+    entry_price = tk.Entry(right_frame)
     entry_price.pack(pady=5)
 
-    label_group = tk.Label(item_window, text="Group")
+    label_group = tk.Label(right_frame, text="Group")
     label_group.pack(pady=5)
-    group_combobox = ttk.Combobox(item_window, values=fetch_groups())
+    group_combobox = ttk.Combobox(right_frame, values=fetch_groups())
     group_combobox.pack(pady=5)
 
-    label_printout = tk.Label(item_window, text="Printout Location")
+    label_printout = tk.Label(right_frame, text="Printout Location")
     label_printout.pack(pady=5)
-    printout_combobox = ttk.Combobox(item_window, values=fetch_printout_locations())
+    printout_combobox = ttk.Combobox(right_frame, values=fetch_printout_locations())
     printout_combobox.pack(pady=5)
 
-    # Submit Button
-    def submit_item():
+    # Fetch and display item details when an item is selected
+    def on_item_select(event):
+        selected_item = item_listbox.get(item_listbox.curselection())
+        conn = mysql.connector.connect(
+            user="root", password="root", host="localhost", database="pos", port="1207"
+        )
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT id, item_description, kitchen_description, price, item_group, printout_location FROM items WHERE item_description = %s",
+            (selected_item,),
+        )
+        item_data = cursor.fetchone()
+        conn.close()
+
+        if item_data:
+            # Populate the form with item details for editing
+            entry_item_desc.delete(0, tk.END)
+            entry_item_desc.insert(0, item_data[1])
+
+            entry_kitchen_desc.delete(0, tk.END)
+            entry_kitchen_desc.insert(0, item_data[2])
+
+            entry_price.delete(0, tk.END)
+            entry_price.insert(0, item_data[3])
+
+            group_combobox.set(item_data[4])
+            printout_combobox.set(item_data[5])
+
+            # Store the item ID for updating purposes
+            entry_item_desc.item_id = item_data[0]
+
+    # Bind the selection event to fetch item details
+    item_listbox.bind("<<ListboxSelect>>", on_item_select)
+
+    # Update item details in the database
+    def update_item():
+        item_id = getattr(entry_item_desc, "item_id", None)
         item_desc = entry_item_desc.get()
         kitchen_desc = entry_kitchen_desc.get()
         price = entry_price.get()
         group = group_combobox.get()
         printout_location = printout_combobox.get()
 
-        # Basic validation: ensure all fields are filled
-        if item_desc and kitchen_desc and price and group and printout_location:
+        if (
+            item_id
+            and item_desc
+            and kitchen_desc
+            and price
+            and group
+            and printout_location
+        ):
             try:
-                # Connect to the database and insert the item
                 conn = mysql.connector.connect(
                     user="root",
                     password="root",
@@ -84,41 +149,34 @@ def open_item_form():
                     port="1207",
                 )
                 cursor = conn.cursor()
-
-                # Insert the item into the database
-                insert_query = """
-                INSERT INTO items (item_description, kitchen_description, price, item_group, printout_location)
-                VALUES (%s, %s, %s, %s, %s)
+                update_query = """
+                UPDATE items 
+                SET item_description = %s, kitchen_description = %s, price = %s, item_group = %s, printout_location = %s 
+                WHERE id = %s
                 """
                 cursor.execute(
-                    insert_query,
+                    update_query,
                     (
                         item_desc,
                         kitchen_desc,
                         float(price),
                         group,
                         printout_location,
+                        item_id,
                     ),
                 )
-                conn.commit()  # Commit the transaction
-                messagebox.showinfo("Success", "Item added successfully!")
-
-                # Clear the fields after successful submission
-                entry_item_desc.delete(0, tk.END)
-                entry_kitchen_desc.delete(0, tk.END)
-                entry_price.delete(0, tk.END)
-                group_combobox.set("")
-                printout_combobox.set("")
+                conn.commit()
+                messagebox.showinfo("Success", "Item updated successfully!")
+                display_items()  # Refresh the item list
 
             except mysql.connector.Error as err:
                 messagebox.showerror("Database Error", f"Error: {err}")
             finally:
                 cursor.close()
-                conn.close()  # Close the database connection
-
-            item_window.destroy()  # Close the window after submission
+                conn.close()
         else:
             messagebox.showwarning("Input Error", "Please fill in all fields")
 
-    btn_submit = tk.Button(item_window, text="Submit", command=submit_item)
-    btn_submit.pack(pady=20)
+    # Button to update item details
+    btn_update = tk.Button(right_frame, text="Update", command=update_item)
+    btn_update.pack(pady=20)
