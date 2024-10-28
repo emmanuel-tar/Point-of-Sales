@@ -5,13 +5,16 @@ from employee_form import open_employee_form
 from customers import open_customer_form
 from currencies import open_currency_form
 from sales import open_sales_screen
+from configuration import (
+    open_configuration_window,
+)  # Import the function to open the configuration window
 
 
 # Function to open admin panel after successful login
 def open_admin_panel():
     admin_window = tk.Tk()  # Creates the admin panel window
     admin_window.title("Admin Panel")
-    admin_window.geometry("600x400")  # Set window size
+    admin_window.geometry("700x500")  # Set window size
 
     # Create the menubar
     menubar = tk.Menu(admin_window)
@@ -28,26 +31,31 @@ def open_admin_panel():
         label="Save", command=lambda: messagebox.showinfo("File", "Save File Clicked")
     )
     file_menu.add_command(
-        label="Preview Older Sales", command=lambda:messagebox.showinfo("File", "Preview Older Sale Clicked")
+        label="Preview Older Sales",
+        command=lambda: messagebox.showinfo("File", "Preview Older Sale Clicked"),
+    )
+    file_menu.add_command(
+        label="Configuration",
+        command=open_configuration_window,  # Opens the configuration window
     )
     file_menu.add_separator()
     file_menu.add_command(label="Exit", command=admin_window.quit)
     menubar.add_cascade(label="File", menu=file_menu)
 
-    # Create an Employee  menu with Sub-menu
+    # Create an Employee menu with sub-options
     employee_menu = tk.Menu(menubar, tearoff=0)
     employee_menu.add_command(
         label="Employee Setup",
         command=lambda: messagebox.showinfo("Employee Setup", "New File Clicked"),
     )
     employee_menu.add_command(
-        label="Employee Roles", command=lambda: messagebox.showinfo("Employee Roles", "Open File Clicked")
+        label="Employee Roles",
+        command=lambda: messagebox.showinfo("Employee Roles", "Open File Clicked"),
     )
-
     employee_menu.add_command(
-        label="Employee Configuration", command=lambda: messagebox.showinfo("Employee Configuration", "Save File Clicked")
+        label="Employee Configuration",
+        command=open_configuration_window,  # Opens the configuration window
     )
-
     employee_menu.add_separator()
     employee_menu.add_command(label="Exit", command=admin_window.quit)
     menubar.add_cascade(label="Employee", menu=employee_menu)
@@ -62,10 +70,7 @@ def open_admin_panel():
         label="View Payment History",
         command=lambda: messagebox.showinfo("Payment", "Payment History Clicked"),
     )
-    payment_menu.add_command(
-        label="Currency",
-        command=open_currency_form)
-
+    payment_menu.add_command(label="Currency", command=open_currency_form)
     menubar.add_cascade(label="Payment", menu=payment_menu)
 
     # Create a Setups menu with sub-options
@@ -122,3 +127,8 @@ def open_admin_panel():
             col = 0
 
     admin_window.mainloop()  # Keep the admin window open
+
+
+# To start the admin panel directly
+if __name__ == "__main__":
+    open_admin_panel()
