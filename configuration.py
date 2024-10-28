@@ -53,10 +53,10 @@ def open_configuration_window():
             frame_buttons,
             text=text,
             command=command,
-            font=("Arial", 12, "bold"),
+            font=("Arial", 14, "bold"),
             width=15,  # Square-like dimensions
             height=5,  # Square-like dimensions
-            bg="darkblue",
+            bg="lightblue",
             fg="white",
         )
         button.pack(side="left", padx=10)  # Arrange horizontally with padding
