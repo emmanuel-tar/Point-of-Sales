@@ -3,7 +3,6 @@ from tkinter import messagebox
 import mysql.connector
 from admin_panel import open_admin_panel
 
-
 # Function to handle login
 def login(username):
     def check_password():
@@ -77,35 +76,34 @@ for user in usernames:
     user_button = tk.Button(
         frame_users,
         text=user,
-        bg="blue",
-        fg="white",
-        font=("Arial", 12, "bold"),
-        width=5,  # Increased width
-        height=2,  # Set height to create a square
+        bg="light green",  # Set the background color to light green
+        fg="black",
+        font=("Arial", 14, "bold"),  # Increase font size for better visibility
+        width=25,  # Adjusted width for larger button appearance
+        height=10,  # Adjusted height for a larger button
+        relief="raised",  # Makes the button look a bit elevated
         command=lambda u=user: login(u),  # Pass the username to login function
     )
-    user_button.pack(side="left", padx=10)
+    user_button.pack(side="left", padx=10, pady=10)  # Add padding around buttons
 
-# Frame for password prompt at the bottom left
+# Frame for password prompt at the bottom
 frame_login = tk.Frame(root)
-frame_login.pack(side="bottom", pady=20, anchor="w")
+frame_login.pack(pady=20)
 
 # Selected user label for feedback
 label_selected_user = tk.Label(
     frame_login, text="Select a user to log in", font=("Arial", 10)
 )
-label_selected_user.grid(
-    row=0, column=0, columnspan=2, padx=10, pady=(0, 5), sticky="w"
-)
+label_selected_user.grid(row=0, column=0, columnspan=2, padx=10, pady=(0, 5), sticky="w")
 
 # Password entry field
 label_password = tk.Label(frame_login, text="Password:")
-label_password.grid(row=1, column=0, padx=10, sticky="w")
+label_password.grid(row=1, column=0, padx=10, pady=5, sticky="w")
 entry_password = tk.Entry(frame_login, show="*", width=20)
 entry_password.grid(row=1, column=1, padx=10, pady=5, sticky="w")
 
 # Login button
-button_login = tk.Button(frame_login, text="Enter Password", command=None)
+button_login = tk.Button(frame_login, text="Enter Password", font=("Arial", 12, "bold"))
 button_login.grid(row=2, column=1, padx=10, pady=10, sticky="w")
 
 root.mainloop()

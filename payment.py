@@ -1,11 +1,12 @@
 # payment.py
 import tkinter as tk
-from tkinter import messagebox, simpledialog
+from tkinter import messagebox, simpledialog, ttk
 import mysql.connector
+from generate_invoice import InvoiceGenerator  # Import the InvoiceGenerator class
 
 
 # Payment Screen Function
-def open_payment_screen(total_amount):
+def open_payment_screen(total_amount, invoice_id):
     payment_window = tk.Toplevel()
     payment_window.title("Payment Screen")
     payment_window.geometry("500x400")
@@ -50,6 +51,29 @@ def open_payment_screen(total_amount):
     payment_type_combobox = ttk.Combobox(payment_window, values=payment_types)
     payment_type_combobox.pack(pady=5)
 
+    # Submit payment and print invoice
+    def submit_payment():
+        selected_payment_type = payment_type_combobox.get()
+        if not selected_payment_type:
+            messagebox.showwarning("Warning", "Please select a payment type.")
+            return
+
+        # Here you can add the logic to process payment if needed.
+
+        # Generate and print the invoice
+        db_config = {
+            "host": "localhost",
+            "user": "root",
+            "password": "root",
+            "database": "pos",
+            "port": "1207",
+        }
+        invoice_generator = InvoiceGenerator(db_config, invoice_id)
+        invoice_generator.generate_invoice("customer_invoice.pdf")
+        messagebox.showinfo("Success", "Payment successful and invoice printed.")
+
+        payment_window.destroy()  # Close the payment window
+
     # Apply Discount Buttons
     tk.Button(
         payment_window, text="Discount by %", command=apply_discount_percentage
@@ -58,21 +82,12 @@ def open_payment_screen(total_amount):
         payment_window, text="Discount by Amount", command=apply_discount_amount
     ).pack(pady=5)
 
-    # Print or Close Transaction
-    def print_bill():
-        messagebox.showinfo("Print", "Printing bill...")
+    # Submit Button
+    tk.Button(payment_window, text="Submit Payment", command=submit_payment).pack(pady=20)
 
-    def close_transaction():
-        payment_type = payment_type_combobox.get()
-        if not payment_type:
-            messagebox.showwarning("Payment Type", "Please select a payment type.")
-            return
-        messagebox.showinfo("Transaction", "Transaction closed successfully!")
-        payment_window.destroy()
 
-    tk.Button(payment_window, text="Print Bill", command=print_bill).pack(pady=10)
-    tk.Button(payment_window, text="Close Transaction", command=close_transaction).pack(
-        pady=10
-    )
-
-    payment_window.mainloop()
+# Usage example
+if __name__ == "__main__":
+    total_amount = 5000  # Replace with actual total amount
+    invoice_id = 1  # Replace with actual invoice ID
+    open_payment_screen(total_amount, invoice_id)

@@ -1,13 +1,10 @@
 import tkinter as tk
+from printer_config import configure_printer  # Import the printer configuration function
 
 
 # Function placeholders for each configuration button action
 def configure_system_connection():
     print("Configure system connection settings")
-
-
-def configure_printer():
-    print("Configure printer settings")
 
 
 def configure_label_design():
@@ -40,7 +37,7 @@ def open_configuration_window():
     # Button Configurations
     buttons = [
         ("System Connection", configure_system_connection),
-        ("Printer Configuration", configure_printer),
+        ("Printer Configuration", configure_printer),  # Link to printer_config function
         ("Label Design Settings", configure_label_design),
         ("Employee Role Configuration", configure_employee_roles),
         ("Font Size Setting", configure_font_size),
@@ -60,6 +57,4 @@ def open_configuration_window():
             fg="white",
         )
         button.pack(side="left", padx=10)  # Arrange horizontally with padding
-
-
-# This function can be imported and called in admin_panel.py
+ # Arrange horizontally with padding
