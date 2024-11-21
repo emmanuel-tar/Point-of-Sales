@@ -3,6 +3,7 @@ from tkinter import messagebox
 import mysql.connector
 from admin_panel import open_admin_panel
 
+
 # Function to handle login
 def login(username):
     def check_password():

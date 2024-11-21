@@ -1,9 +1,7 @@
-# payment.py
 import tkinter as tk
 from tkinter import messagebox, simpledialog, ttk
 import mysql.connector
 from generate_invoice import InvoiceGenerator  # Import the InvoiceGenerator class
-
 
 # Payment Screen Function
 def open_payment_screen(total_amount, invoice_id):
@@ -12,25 +10,28 @@ def open_payment_screen(total_amount, invoice_id):
     payment_window.geometry("500x400")
 
     # Display total amount
+    final_total = total_amount  # Initialize final total with original total amount
     total_label = tk.Label(
-        payment_window, text=f"Total: =N={total_amount:.2f}", font=("Arial", 14)
+        payment_window, text=f"Total: =N={final_total:.2f}", font=("Arial", 14)
     )
     total_label.pack(pady=10)
 
     # Discount by percentage
     def apply_discount_percentage():
+        nonlocal final_total
         percent = simpledialog.askfloat("Discount", "Enter discount percentage:")
         if percent is not None:
             discount_amount = total_amount * (percent / 100)
-            discounted_total = total_amount - discount_amount
-            total_label.config(text=f"Total after discount: =N={discounted_total:.2f}")
+            final_total = total_amount - discount_amount
+            total_label.config(text=f"Total after discount: =N={final_total:.2f}")
 
     # Discount by amount
     def apply_discount_amount():
+        nonlocal final_total
         discount_amount = simpledialog.askfloat("Discount", "Enter discount amount:")
         if discount_amount is not None:
-            discounted_total = total_amount - discount_amount
-            total_label.config(text=f"Total after discount: =N={discounted_total:.2f}")
+            final_total = total_amount - discount_amount
+            total_label.config(text=f"Total after discount: =N={final_total:.2f}")
 
     # Fetch payment types from database
     def fetch_payment_types():
@@ -58,9 +59,7 @@ def open_payment_screen(total_amount, invoice_id):
             messagebox.showwarning("Warning", "Please select a payment type.")
             return
 
-        # Here you can add the logic to process payment if needed.
-
-        # Generate and print the invoice
+        # Generate and print the invoice with the final discounted amount
         db_config = {
             "host": "localhost",
             "user": "root",
@@ -68,10 +67,9 @@ def open_payment_screen(total_amount, invoice_id):
             "database": "pos",
             "port": "1207",
         }
-        invoice_generator = InvoiceGenerator(db_config, invoice_id)
+        invoice_generator = InvoiceGenerator(db_config, invoice_id, final_total)
         invoice_generator.generate_invoice("customer_invoice.pdf")
         messagebox.showinfo("Success", "Payment successful and invoice printed.")
-
         payment_window.destroy()  # Close the payment window
 
     # Apply Discount Buttons
@@ -85,9 +83,3 @@ def open_payment_screen(total_amount, invoice_id):
     # Submit Button
     tk.Button(payment_window, text="Submit Payment", command=submit_payment).pack(pady=20)
 
-
-# Usage example
-if __name__ == "__main__":
-    total_amount = 5000  # Replace with actual total amount
-    invoice_id = 1  # Replace with actual invoice ID
-    open_payment_screen(total_amount, invoice_id)

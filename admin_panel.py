@@ -5,6 +5,8 @@ from employee_form import open_employee_form
 from customers import open_customer_form
 from currencies import open_currency_form
 from sales import open_sales_screen
+from purchase import PurchaseForm
+
 from configuration import (
     open_configuration_window,
 )  # Import the function to open the configuration window
@@ -97,6 +99,15 @@ def open_admin_panel():
     frame.pack(pady=20)
 
     # Create the buttons (boxes) and place them in a grid
+    def open_purchase_form():
+        # Create a new window for the PurchaseForm
+        purchase_window = tk.Toplevel(admin_window)
+        purchase_window.title("Purchase Form")
+        purchase_window.geometry("800x600")
+
+        # Add the PurchaseForm to the new window
+        PurchaseForm(purchase_window)
+
     buttons = [
         ("Items", open_item_form),  # Link the Items button to open_item_form
         ("Customers", open_customer_form),
@@ -104,6 +115,7 @@ def open_admin_panel():
         ("Sales", open_sales_screen),
         ("Employees", open_employee_form),
         ("Dashboard", lambda: print("Dashboard page")),
+        ("Purchases", open_purchase_form),  # Updated to call open_purchase_form
     ]
 
     row = 0
