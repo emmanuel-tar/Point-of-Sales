@@ -10,6 +10,10 @@ class PurchaseForm(tk.Frame):
         self.master = master
         self.pack(fill="both", expand=True)
 
+        # Connect to database
+        self.db_connection = self.connect_to_database()
+        self.cursor = self.db_connection.cursor()
+
         # Upper part
         upper_frame = tk.Frame(self, bg="lightgray")
         upper_frame.pack(fill="x")
@@ -17,8 +21,9 @@ class PurchaseForm(tk.Frame):
         # Supplier
         supplier_label = tk.Label(upper_frame, text="Supplier:", bg="lightgray")
         supplier_label.pack(side="left", padx=5, pady=5)
-        self.supplier_combobox = ttk.Combobox(upper_frame, width=30)
+        self.supplier_combobox = ttk.Combobox(upper_frame, width=30, state="readonly")
         self.supplier_combobox.pack(side="left", padx=5, pady=5)
+        self.populate_suppliers()
 
         # Location
         location_label = tk.Label(upper_frame, text="Location:", bg="lightgray")
@@ -65,7 +70,10 @@ class PurchaseForm(tk.Frame):
 
         for header in headers:
             self.tree.heading(header, text=header)
-            self.tree.column(header, width=200, anchor="center", stretch="no")
+            self.tree.column(header, width=150, anchor="center", stretch=True)
+
+        # Populate items
+        self.populate_items()
 
         # Menu bar
         menubar = tk.Menu(self.master)
@@ -78,84 +86,72 @@ class PurchaseForm(tk.Frame):
         file_menu.add_command(label="Exit", command=self.master.destroy)
         menubar.add_cascade(label="File", menu=file_menu)
 
+    def connect_to_database(self):
+        """Establish a connection to the MySQL database."""
+        try:
+            conn = mysql.connector.connect(
+                host="127.0.0.1",
+                user="root",  # Replace with your MySQL username
+                password="root",  # Replace with your MySQL password
+                port="1207",
+                database="POS",  # Replace with your database name
+            )
+            return conn
+        except mysql.connector.Error as err:
+            messagebox.showerror(
+                "Database Error", f"Error connecting to database: {err}"
+            )
+            raise
+
+    def fetch_suppliers(self):
+        """Fetch supplier data from the database."""
+        try:
+            self.cursor.execute("SELECT id, name FROM suppliers")
+            return self.cursor.fetchall()
+        except mysql.connector.Error as err:
+            messagebox.showerror("Database Error", f"Error fetching suppliers: {err}")
+            return []
+
+    def fetch_items(self):
+        """Fetch item data from the database."""
+        try:
+            query = """
+                SELECT item_code, item_description, cost_price, 0 AS discount_percent, cost_price AS total
+                FROM items
+            """
+            self.cursor.execute(query)
+            return self.cursor.fetchall()
+        except mysql.connector.Error as err:
+            messagebox.showerror("Database Error", f"Error fetching items: {err}")
+            return []
+
+    def populate_suppliers(self):
+        """Populate the supplier combobox."""
+        suppliers = self.fetch_suppliers()
+        if suppliers:
+            self.supplier_combobox["values"] = [name for _, name in suppliers]
+
+    def populate_items(self):
+        """Populate the items in the treeview."""
+        items = self.fetch_items()
+        for item in items:
+            self.tree.insert("", "end", values=item)
+
     def new_file(self):
         messagebox.showinfo("File", "New File Clicked")
 
     def preview_history(self):
         messagebox.showinfo("File", "History/Preview Clicked")
 
-
-def create_database_and_tables():
-    # Connect to MySQL Server
-    try:
-        conn = mysql.connector.connect(
-            host="127.0.0.1",
-            user="root",  # Replace with your MySQL username
-            password="root",
-            port="1207",
-            database="POS"# Replace with your MySQL password
-        )
-        cursor = conn.cursor()
-
-        # Create database
-        cursor.execute("CREATE DATABASE IF NOT EXISTS pos")
-        cursor.execute("USE pos")
-
-        # Create supplier table
-        cursor.execute(
-            """
-            CREATE TABLE IF NOT EXISTS Suppliers (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                name VARCHAR(255) NOT NULL,
-                location VARCHAR(255) NOT NULL
-            )
-        """
-        )
-
-        # Create purchases table
-        cursor.execute(
-            """
-            CREATE TABLE IF NOT EXISTS Purchases (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                supplier_id INT,
-                location VARCHAR(255),
-                transaction_type VARCHAR(50),
-                date_of_transaction DATE,
-                seller VARCHAR(255),
-                invoice_number VARCHAR(50),
-                FOREIGN KEY (supplier_id) REFERENCES Suppliers(id)
-            )
-        """
-        )
-
-        # Create purchase items table
-        cursor.execute(
-            """
-            CREATE TABLE IF NOT EXISTS PurchaseItems (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                purchase_id INT,
-                item_code VARCHAR(50),
-                item_description VARCHAR(255),
-                cost_price DECIMAL(10, 2),
-                discount_percentage DECIMAL(5, 2),
-                total DECIMAL(10, 2),
-                FOREIGN KEY (purchase_id) REFERENCES Purchases(id)
-            )
-        """
-        )
-
-        print("Database and tables created successfully!")
-        conn.commit()
-        cursor.close()
-        conn.close()
-
-    except mysql.connector.Error as err:
-        print(f"Error: {err}")
+    def __del__(self):
+        """Clean up database resources."""
+        if self.db_connection.is_connected():
+            self.cursor.close()
+            self.db_connection.close()
 
 
 if __name__ == "__main__":
-    create_database_and_tables()
     root = tk.Tk()
     root.title("Purchase Form")
     PurchaseForm(root)
-    #root.mainloop()
+    root.mainloop()
